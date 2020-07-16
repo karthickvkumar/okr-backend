@@ -103,7 +103,11 @@ app.post('/api/login', (req, res) => {
     }
     let user = findUser(req.body.username);
     if (user instanceof Object && user.name == req.body.username) {
-        res.status(400).send('Username alredy existed');
+        let response = {
+            isAuthenticated: true,
+            status: 'Username alredy registered'
+        }
+        res.send(response);
         return;
     }
 
