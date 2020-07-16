@@ -34,7 +34,7 @@ app.get('/api/board/:username', (req, res) => {
 
 app.post('/api/board/add', (req, res) => {
     let user = findUser(req.body.username);
-    let talks = findUser(req.body.talks);
+    let talks = req.body.talks;
     user.board.talks = talks;
 
     // let parentId = req.body.parentId;
@@ -61,7 +61,7 @@ app.post('/api/board/add', (req, res) => {
 
 app.post('/api/board/edit', (req, res) => {
     let user = findUser(req.body.username);
-    let talks = findUser(req.body.talks);
+    let talks = req.body.talks;
     user.board.talks = talks;
 
     // let id = req.body.id;
@@ -79,7 +79,7 @@ app.post('/api/board/edit', (req, res) => {
 
 app.post('/api/board/:username/delete', (req, res) => {
     let user = findUser(req.params.username);
-    let talks = findUser(req.body.talks);
+    let talks = req.body.talks;
     user.board.talks = talks;
 
     // let parentId = req.params.parentId;
