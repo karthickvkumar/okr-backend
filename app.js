@@ -33,7 +33,7 @@ app.get('/api/board/:username', (req, res) => {
         res.send(user.board);
     }
     else {
-        res.send([]);
+        res.send(user);
     }
 });
 
