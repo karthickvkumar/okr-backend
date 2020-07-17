@@ -59,7 +59,7 @@ app.post('/api/board/add', (req, res) => {
     res.send(response);
 });
 
-app.post('/api/board/edit', (req, res) => {
+app.put('/api/board/edit', (req, res) => {
     let user = findUser(req.body.username);
     let talks = req.body.talks;
     user.board.talks = talks;
@@ -76,7 +76,7 @@ app.post('/api/board/edit', (req, res) => {
     res.send(response);
 });
 
-app.post('/api/board/:username/delete', (req, res) => {
+app.delete('/api/board/:username/delete', (req, res) => {
     let user = findUser(req.params.username);
     let talks = req.body.talks;
     user.board.talks = talks;
