@@ -14,11 +14,6 @@ app.use(function (req, res, next) {
 
 let Users = [];
 
-let Board = {
-    title: 'Requirement Management',
-    talks: []
-};
-
 app.get('/api/status', (req, res) => {
     res.send('Server is Up and Running')
 });
@@ -117,7 +112,10 @@ app.post('/api/login', (req, res) => {
 
     let createUser = {
         name: req.body.username,
-        board: Board
+        board: {
+            title: 'Requirement Management',
+            talks: []
+        }
     }
     Users.push(createUser);
 
