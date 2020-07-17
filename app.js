@@ -29,14 +29,11 @@ app.get('/api/users', (req, res) => {
 
 app.get('/api/board/:username', (req, res) => {
     let user = findUser(req.params.username)
-    // let user1 = Users.find((user) => {
-    //     return user.name == req.params.username;
-    // })
-    if (user && user.board instanceof Array) {
+    if (user && user.board) {
         res.send(user.board);
     }
     else {
-        res.send(user);
+        res.send("There is no cards to display");
     }
 });
 
