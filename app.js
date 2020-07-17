@@ -29,7 +29,12 @@ app.get('/api/users', (req, res) => {
 
 app.get('/api/board/:username', (req, res) => {
     let user = findUser(req.params.username)
-    res.send(user.board);
+    if (user.board instanceof Array) {
+        res.send(user.board);
+    }
+    else {
+        res.send([]);
+    }
 });
 
 app.post('/api/board/add', (req, res) => {
@@ -66,7 +71,6 @@ app.post('/api/board/edit', (req, res) => {
 
     // let id = req.body.id;
     // let editedCard = req.body.card;
-
     // let uneditedCard = findCard(user.board.talks, id);
     // Object.assign(uneditedCard, editedCard)
 
