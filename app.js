@@ -14,84 +14,14 @@ app.use(function (req, res, next) {
 
 let Users = [];
 
+
 app.get('/api/status', (req, res) => {
     res.send('Server is Up and Running')
 });
 
 app.get('/api/users', (req, res) => {
-    res.send(Users)
-});
-
-app.get('/api/board/:username', (req, res) => {
-    let user = findUser(req.params.username)
-    if (user && user.board) {
-        res.send(user.board);
-    }
-    else {
-        res.send("There is no cards to display");
-    }
-});
-
-app.post('/api/board/add', (req, res) => {
-    let user = findUser(req.body.username);
-    let talks = req.body.talks;
-    user.board.talks = talks;
-
-    // let parentId = req.body.parentId;
-    // let card = req.body.card;
-    // if (!parentId) {
-    //     user.board.talks.push(card);
-    // }
-    // else {
-    //     let parentCard = findCard(user.board.talks, parentId);
-    //     console.log(parentCard)
-    //     if (!parentCard || parentCard.talks == undefined) {
-    //         res.status(400).send("Something went worng, try again.");
-    //         return;
-    //     }
-    //     parentCard.talks.push(card);
-    // }
-
-    let response = {
-        status: 'card created successfully',
-        createdAt: new Date()
-    }
-    res.send(response);
-});
-
-app.put('/api/board/edit', (req, res) => {
-    let user = findUser(req.body.username);
-    let talks = req.body.talks;
-    user.board.talks = talks;
-
-    // let id = req.body.id;
-    // let editedCard = req.body.card;
-    // let uneditedCard = findCard(user.board.talks, id);
-    // Object.assign(uneditedCard, editedCard)
-
-    let response = {
-        status: 'card updated successfully',
-        createdAt: new Date()
-    }
-    res.send(response);
-});
-
-app.delete('/api/board/:username/delete', (req, res) => {
-    let user = findUser(req.params.username);
-    let talks = req.body.talks;
-    user.board.talks = talks;
-
-    // let parentId = req.params.parentId;
-    // let id = req.params.id;
-    // let parentCard = findCard(user.board.talks, parentId);
-    // let index = parentCard.talks.findIndex(card => card.id == id);
-    // parentCard.talks.splice(index, 1);
-
-    let response = {
-        status: 'card deleted successfully',
-        createdAt: new Date()
-    }
-    res.send(response);
+    let userList = Users.map(user => user.name);
+    res.send(userList);
 });
 
 app.post('/api/login', (req, res) => {
@@ -109,48 +39,224 @@ app.post('/api/login', (req, res) => {
         res.send(response);
         return;
     }
-
     let createUser = {
         name: req.body.username,
-        board: {
-            title: 'Requirement Management',
-            talks: []
-        }
+        boards: [{
+            "id": "board-1",
+            "title": "OKR Board 1",
+            "board": {
+                "title": 'Requirement Management',
+                "talks": []
+            }
+        }, {
+            "id": "board-2",
+            "title": "OKR Board 2",
+            "board": {
+                "title": 'Requirement Management',
+                "talks": []
+            }
+        }]
     }
     Users.push(createUser);
-
     let response = {
-        isAuthenticated: true
+        isAuthenticated: true,
+        status: 'Username registered successfully'
     }
     res.send(response);
 });
 
-function findCard(talks, parentId) {
-    const iterateFind = (childcard) => {
-        return childcard.find((child) => {
-            if (child.id == parentId) {
-                return child
-            }
-            if (childcard.id !== parentId && childcard.talks instanceof Array && childcard.talks.length > 0) {
-                return iterateFind(childcard.talks);
-            }
-        });
+app.get('/api/board/:username', (req, res) => {
+    let user = findUser(req.params.username);
+    if (user && user.boards && user.boards.length > 0) {
+        res.send(user.boards);
     }
+    else {
+        let message = {
+            text: "There is no boards to display"
+        }
+        res.send(message);
+    }
+})
 
-    let targetcard = [];
-    talks.forEach((card) => {
-        if (card.id == parentId) {
-            targetcard.push(card);
+app.post('/api/board/add', (req, res) => {
+    let user = findUser(req.body.username);
+    let board = req.body.board;
+    if (user && user.boards instanceof Array && board instanceof Object) {
+        user.boards.push(board);
+        let message = {
+            text: board.title + " created successfully"
         }
-        if (card.id !== parentId && card.talks instanceof Array && card.talks.length > 0) {
-            targetcard.push(iterateFind(card.talks));
+        res.send(message);
+    }
+    else {
+        let message = {
+            text: "There is no boards to display"
         }
-    });
-    return targetcard.length > 0 ? targetcard[0] : targetcard;
-}
+        res.send(message);
+    }
+})
+
+app.get('/api/board/:boardId/:username', (req, res) => {
+    let user = findUser(req.params.username);
+    if (user && user.boards) {
+        let board = findBoard(user, req.params.boardId);
+        if (board) {
+            res.send(board);
+        } else {
+            let message = {
+                text: "There is no boards to display"
+            }
+            res.send(message);
+        }
+    }
+    else {
+        let message = {
+            text: "There is no boards to display"
+        }
+        res.send(message);
+    }
+});
+
+app.post('/api/board/:boardId/add', (req, res) => {
+    let user = findUser(req.body.username);
+    if (user && user.boards) {
+        let selectedBoard = findBoard(user, req.params.boardId);
+        if (selectedBoard && selectedBoard.board) {
+            let parentCard = getByID(selectedBoard.board, req.body.parentId);
+            let card = req.body.card;
+            if (!parentCard && selectedBoard.board.talks) {
+                selectedBoard.board.talks.push(card);
+                let message = {
+                    text: 'Card created successfully',
+                }
+                res.send(user.boards);
+            }
+            else if (parentCard && parentCard.talks && card) {
+                parentCard.talks.push(card);
+                let message = {
+                    text: 'Card created successfully',
+                }
+                res.send(user.boards);
+            } else {
+                let message = {
+                    text: 'No card found',
+                }
+                res.send(user.boards);
+            }
+        } else {
+            let message = {
+                text: 'No board found',
+            }
+            res.send(user.boards);
+        }
+    }
+    else {
+        let message = {
+            text: 'No user found',
+        }
+        res.send(user.boards);
+    }
+});
+
+app.put('/api/board/:boardId/edit', (req, res) => {
+    let user = findUser(req.body.username);
+    if (user && user.boards) {
+        let selectedBoard = findBoard(user, req.params.boardId);
+        if (selectedBoard && selectedBoard.board) {
+            let oldCard = getByID(selectedBoard.board, req.body.cardId);
+            let newCard = req.body.card;
+            if (!oldCard) {
+                let message = {
+                    text: 'No card found',
+                }
+                res.send(user.boards);
+            }
+            else if (oldCard && newCard) {
+                Object.assign(oldCard, newCard);
+                let message = {
+                    text: 'Card updated successfully',
+                }
+                res.send(user.boards);
+            } else {
+                let message = {
+                    text: 'No card found',
+                }
+                res.send(user.boards);
+            }
+        } else {
+            let message = {
+                text: 'No board found',
+            }
+            res.send(user.boards);
+        }
+    }
+    else {
+        let message = {
+            text: 'No user found',
+        }
+        res.send(user.boards);
+    }
+});
+
+app.delete('/api/board/:boardId/:username/delete/:parentId/:cardIndex', (req, res) => {
+    let user = findUser(req.params.username);
+    if (user && user.boards) {
+        let selectedBoard = findBoard(user, req.params.boardId);
+        if (selectedBoard && selectedBoard.board) {
+            let parentCard = getByID(selectedBoard.board, req.params.parentId);
+            let cardIndex = req.params.cardIndex;
+            if (!parentCard) {
+                let message = {
+                    text: 'No card found',
+                }
+                res.send(user.boards);
+            }
+            else if (parentCard && parentCard.talks && cardIndex) {
+                parentCard.talks.splice(cardIndex, 1)
+                let message = {
+                    text: 'Card deleted successfully',
+                }
+                res.send(user.boards);
+            } else {
+                let message = {
+                    text: 'No card found',
+                }
+                res.send(user.boards);
+            }
+        } else {
+            let message = {
+                text: 'No board found',
+            }
+            res.send(user.boards);
+        }
+    }
+    else {
+        let message = {
+            text: 'No user found',
+        }
+        res.send(user.boards);
+    }
+});
+
 
 function findUser(username) {
     return Users.find(user => user.name == username);
+}
+
+function findBoard(user, boardId) {
+    return user.boards.find(board => board.id == boardId);
+}
+
+function getByID(board, id) {
+    let result = null
+    if (id === board.id) {
+        return board
+    } else {
+        if (board.talks) {
+            board.talks.some(card => result = getByID(card, id));
+        }
+        return result;
+    }
 }
 
 function validateLogin(data) {
