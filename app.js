@@ -32,12 +32,13 @@ app.get('/api/board/:username', (req, res) => {
     let user1 = Users.find((user) => {
         return user.name == req.params.username;
     })
-    if (user && user.board instanceof Array) {
-        res.send(user.board);
-    }
-    else {
-        res.send(user1);
-    }
+    // if (user && user.board instanceof Array) {
+    //     res.send(user.board);
+    // }
+    // else {
+    //     res.send(req.params.username);
+    // }
+    res.send(req.params.username);
 });
 
 app.post('/api/board/add', (req, res) => {
