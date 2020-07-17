@@ -29,16 +29,15 @@ app.get('/api/users', (req, res) => {
 
 app.get('/api/board/:username', (req, res) => {
     let user = findUser(req.params.username)
-    let user1 = Users.find((user) => {
-        return user.name == req.params.username;
-    })
-    // if (user && user.board instanceof Array) {
-    //     res.send(user.board);
-    // }
-    // else {
-    //     res.send(req.params.username);
-    // }
-    res.send(req.params.username);
+    // let user1 = Users.find((user) => {
+    //     return user.name == req.params.username;
+    // })
+    if (user && user.board instanceof Array) {
+        res.send(user.board);
+    }
+    else {
+        res.send(user);
+    }
 });
 
 app.post('/api/board/add', (req, res) => {
