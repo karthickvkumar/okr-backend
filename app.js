@@ -29,7 +29,7 @@ app.get('/api/users', (req, res) => {
 
 app.get('/api/board/:username', (req, res) => {
     let user = findUser(req.params.username)
-    if (user.board instanceof Array) {
+    if (user && user.board instanceof Array) {
         res.send(user.board);
     }
     else {
