@@ -1,8 +1,13 @@
 const express = require('express');
-const app = express();
 const Joi = require('@hapi/joi');
+const morgan = require('morgan');
+const mongoose = require('mongoose');
+const app = express();
 
-let Users = [];
+const utility = require("./routes/utility");
+const { string } = require('@hapi/joi');
+
+// let Users = [];
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,10 +17,19 @@ app.use(function (req, res, next) {
     next();
 });
 app.use(express.json());
+app.use(express.static('public'));
+app.use(morgan('tiny'));
+app.use('/api/status', utility);
 
-app.get('/api/status', (req, res) => {
-    res.send('Server is Up and Running')
+mongoose.connect('mongodb://localhost/okr-node', { useNewUrlParser: true })
+    .then(() => console.log('Connected to MongoDB...'))
+    .catch(() => console.log('Unable to connect MongoDB...'))
+
+const userSchema = new mongoose.Schema({
+    name: String
 });
+const Users = mongoose.model('Users', userSchema);
+
 
 app.get('/api/users', (req, res) => {
     let userList = Users.map(user => user.name);
@@ -23,44 +37,49 @@ app.get('/api/users', (req, res) => {
 });
 
 app.post('/api/login', (req, res) => {
-    let { error } = validateLogin(req.body);
-    if (error) {
-        res.status(400).send(error.details[0].message);
-        return;
-    }
-    let user = findUser(req.body.username);
-    if (user instanceof Object && user.name == req.body.username) {
+    try {
+        let { error } = validateLogin(req.body);
+        if (error) {
+            res.status(400).send(error.details[0].message);
+            return;
+        }
+        let user = findUser(req.body.username);
+        if (user instanceof Object && user.name == req.body.username) {
+            let response = {
+                isAuthenticated: true,
+                status: 'Username alredy registered'
+            }
+            res.send(response);
+            return;
+        }
+        let createUser = {
+            name: req.body.username,
+            boards: [{
+                "id": "board-1",
+                "title": "OKR Board 1",
+                "board": {
+                    "title": 'Requirement Management',
+                    "talks": []
+                }
+            }, {
+                "id": "board-2",
+                "title": "OKR Board 2",
+                "board": {
+                    "title": 'Requirement Management',
+                    "talks": []
+                }
+            }]
+        }
+        Users.push(createUser);
         let response = {
             isAuthenticated: true,
-            status: 'Username alredy registered'
+            status: 'Username registered successfully'
         }
         res.send(response);
-        return;
     }
-    let createUser = {
-        name: req.body.username,
-        boards: [{
-            "id": "board-1",
-            "title": "OKR Board 1",
-            "board": {
-                "title": 'Requirement Management',
-                "talks": []
-            }
-        }, {
-            "id": "board-2",
-            "title": "OKR Board 2",
-            "board": {
-                "title": 'Requirement Management',
-                "talks": []
-            }
-        }]
+    catch (error) {
+        res.status(500).send(error);
     }
-    Users.push(createUser);
-    let response = {
-        isAuthenticated: true,
-        status: 'Username registered successfully'
-    }
-    res.send(response);
 });
 
 app.get('/api/board/:username', (req, res) => {
