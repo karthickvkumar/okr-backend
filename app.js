@@ -2,18 +2,16 @@ const express = require('express');
 const app = express();
 const Joi = require('@hapi/joi');
 
-app.use(express.json());
+let Users = [];
+
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
-    express.json();
 });
-
-let Users = [];
-
+app.use(express.json());
 
 app.get('/api/status', (req, res) => {
     res.send('Server is Up and Running')
@@ -129,32 +127,32 @@ app.post('/api/board/:boardId/add', (req, res) => {
                 let message = {
                     text: 'Card created successfully',
                 }
-                res.send(user.boards);
+                res.send(message);
             }
             else if (parentCard && parentCard.talks && card) {
                 parentCard.talks.push(card);
                 let message = {
                     text: 'Card created successfully',
                 }
-                res.send(user.boards);
+                res.send(message);
             } else {
                 let message = {
-                    text: 'No card found',
+                    text: 'There is no cards found',
                 }
-                res.send(user.boards);
+                res.send(message);
             }
         } else {
             let message = {
-                text: 'No board found',
+                text: 'There is no boards found',
             }
-            res.send(user.boards);
+            res.send(message);
         }
     }
     else {
         let message = {
-            text: 'No user found',
+            text: 'Invalid username, please re-login',
         }
-        res.send(user.boards);
+        res.send(message);
     }
 });
 
@@ -167,34 +165,34 @@ app.put('/api/board/:boardId/edit', (req, res) => {
             let newCard = req.body.card;
             if (!oldCard) {
                 let message = {
-                    text: 'No card found',
+                    text: 'There is no cards found',
                 }
-                res.send(user.boards);
+                res.send(message);
             }
             else if (oldCard && newCard) {
                 Object.assign(oldCard, newCard);
                 let message = {
                     text: 'Card updated successfully',
                 }
-                res.send(user.boards);
+                res.send(message);
             } else {
                 let message = {
-                    text: 'No card found',
+                    text: 'There is no cards found',
                 }
-                res.send(user.boards);
+                res.send(message);
             }
         } else {
             let message = {
-                text: 'No board found',
+                text: 'There is no boards found',
             }
-            res.send(user.boards);
+            res.send(message);
         }
     }
     else {
         let message = {
-            text: 'No user found',
+            text: 'Invalid username, please re-login',
         }
-        res.send(user.boards);
+        res.send(message);
     }
 });
 
@@ -232,12 +230,11 @@ app.delete('/api/board/:boardId/:username/delete/:parentId/:cardIndex', (req, re
     }
     else {
         let message = {
-            text: 'No user found',
+            text: 'Invalid username, please re-login',
         }
-        res.send(user.boards);
+        res.send(message);
     }
 });
-
 
 function findUser(username) {
     return Users.find(user => user.name == username);
