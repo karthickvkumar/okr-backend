@@ -5,9 +5,6 @@ const mongoose = require('mongoose');
 const app = express();
 
 const utility = require("./routes/utility");
-const { string } = require('@hapi/joi');
-
-// let Users = [];
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -26,9 +23,23 @@ mongoose.connect('mongodb://localhost/okr-node', { useNewUrlParser: true })
     .catch(() => console.log('Unable to connect MongoDB...'))
 
 const userSchema = new mongoose.Schema({
-    name: String
+    username: String
 });
 const Users = mongoose.model('Users', userSchema);
+
+const boardSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users'
+    },
+    title: String,
+    description: String,
+    author: String,
+    tags: [String],
+    date: Date,
+    createdAt: Date
+});
+const Boards = mongoose.model('Boards', boardSchema);
 
 
 app.get('/api/users', (req, res) => {
@@ -43,75 +54,57 @@ app.post('/api/login', (req, res) => {
             res.status(400).send(error.details[0].message);
             return;
         }
-        let user = findUser(req.body.username);
-        if (user instanceof Object && user.name == req.body.username) {
-            let response = {
-                isAuthenticated: true,
-                status: 'Username alredy registered'
+        async function createUser(username) {
+            const isUser = await Users.findOne({ username });
+            if (!isUser) {
+                const users = new Users({
+                    username
+                });
+                const response = await users.save();
+                res.send(response);
+                return;
             }
-            res.send(response);
-            return;
+            res.send(isUser)
         }
-        let createUser = {
-            name: req.body.username,
-            boards: [{
-                "id": "board-1",
-                "title": "OKR Board 1",
-                "board": {
-                    "title": 'Requirement Management',
-                    "talks": []
-                }
-            }, {
-                "id": "board-2",
-                "title": "OKR Board 2",
-                "board": {
-                    "title": 'Requirement Management',
-                    "talks": []
-                }
-            }]
-        }
-        Users.push(createUser);
-        let response = {
-            isAuthenticated: true,
-            status: 'Username registered successfully'
-        }
-        res.send(response);
+        createUser(req.body.username);
     }
     catch (error) {
         res.status(500).send(error);
     }
 });
 
-app.get('/api/board/:username', (req, res) => {
-    let user = findUser(req.params.username);
-    if (user && user.boards && user.boards.length > 0) {
-        res.send(user.boards);
-    }
-    else {
-        let message = {
-            text: "There is no boards to display"
+app.get('/api/boards/:userId', (req, res) => {
+    async function getBoards() {
+        try {
+            const userId = req.params.userId;
+            const boards = await Boards.find({ userId });
+            res.send(boards);
         }
-        res.send(message);
+        catch (error) {
+            res.status(500).send(error);
+        }
     }
-})
+    getBoards();
+});
 
 app.post('/api/board/add', (req, res) => {
-    let user = findUser(req.body.username);
-    let board = req.body.board;
-    if (user && user.boards instanceof Array && board instanceof Object) {
-        user.boards.push(board);
-        let message = {
-            text: board.title + " created successfully"
+    async function listBoards() {
+        try {
+            const board = new Boards({
+                userId: req.body.userId,
+                title: req.body.title,
+                description: req.body.description
+            });
+            const response = await board.save();
+            res.send(response);
         }
-        res.send(message);
-    }
-    else {
-        let message = {
-            text: "There is no boards to display"
+        catch (error) {
+            res.send(error);
         }
-        res.send(message);
     }
-})
+    listBoards(req.body);
+});
+
 
 app.get('/api/board/:boardId/:username', (req, res) => {
     let user = findUser(req.params.username);
