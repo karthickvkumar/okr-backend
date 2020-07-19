@@ -36,17 +36,33 @@ const boardSchema = new mongoose.Schema({
     description: String,
     author: String,
     tags: [String],
-    date: Date,
+    selectedDate: {
+        start: Date,
+        end: Date
+    },
     createdAt: Date
 });
 const Boards = mongoose.model('Boards', boardSchema);
 
-
-app.get('/api/users', (req, res) => {
-    let userList = Users.map(user => user.name);
-    res.send(userList);
+const cardSchema = new mongoose.Schema({
+    boradId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Boards'
+    },
+    title: String,
+    parentId: String,
+    description: String,
+    author: String,
+    tags: [String],
+    selectedDate: {
+        start: Date,
+        end: Date
+    },
+    createdAt: Date
 });
+const Cards = mongoose.model('Cards', cardSchema);
 
+// Update login information
 app.post('/api/login', (req, res) => {
     try {
         let { error } = validateLogin(req.body);
@@ -73,6 +89,7 @@ app.post('/api/login', (req, res) => {
     }
 });
 
+//Get list of boards based on User ID
 app.get('/api/boards/:userId', (req, res) => {
     async function getBoards() {
         try {
@@ -87,13 +104,18 @@ app.get('/api/boards/:userId', (req, res) => {
     getBoards();
 });
 
+//Create new board
 app.post('/api/board/add', (req, res) => {
-    async function listBoards() {
+    async function addBoard() {
         try {
             const board = new Boards({
                 userId: req.body.userId,
                 title: req.body.title,
-                description: req.body.description
+                description: req.body.description,
+                author: req.body.author,
+                tags: req.body.tags,
+                selectedDate: req.body.selectedDate,
+                createdAt: req.body.createdAt
             });
             const response = await board.save();
             res.send(response);
@@ -102,171 +124,126 @@ app.post('/api/board/add', (req, res) => {
             res.send(error);
         }
     }
-    listBoards(req.body);
+    addBoard(req.body);
 });
 
-
-app.get('/api/board/:boardId/:username', (req, res) => {
-    let user = findUser(req.params.username);
-    if (user && user.boards) {
-        let board = findBoard(user, req.params.boardId);
-        if (board) {
-            res.send(board);
-        } else {
-            let message = {
-                text: "There is no boards to display"
-            }
-            res.send(message);
+//Edit an existing board
+app.put('/api/board/edit', (req, res) => {
+    async function editBoard() {
+        try {
+            const _id = req.body._id;
+            const updatedBoard = {
+                userId: req.body.userId,
+                title: req.body.title,
+                description: req.body.description,
+                author: req.body.author,
+                tags: req.body.tags,
+                selectedDate: req.body.selectedDate,
+                createdAt: req.body.createdAt,
+            };
+            const response = await Boards.findByIdAndUpdate(_id, updatedBoard);
+            res.send(response);
+        }
+        catch (error) {
+            res.send(error);
         }
     }
-    else {
-        let message = {
-            text: "There is no boards to display"
-        }
-        res.send(message);
-    }
+    editBoard();
 });
 
-app.post('/api/board/:boardId/add', (req, res) => {
-    let user = findUser(req.body.username);
-    if (user && user.boards) {
-        let selectedBoard = findBoard(user, req.params.boardId);
-        if (selectedBoard && selectedBoard.board) {
-            let parentCard = getByID(selectedBoard.board, req.body.parentId);
-            let card = req.body.card;
-            if (!parentCard && selectedBoard.board.talks) {
-                selectedBoard.board.talks.push(card);
-                let message = {
-                    text: 'Card created successfully',
-                }
-                res.send(message);
-            }
-            else if (parentCard && parentCard.talks && card) {
-                parentCard.talks.push(card);
-                let message = {
-                    text: 'Card created successfully',
-                }
-                res.send(message);
-            } else {
-                let message = {
-                    text: 'There is no cards found',
-                }
-                res.send(message);
-            }
-        } else {
-            let message = {
-                text: 'There is no boards found',
-            }
-            res.send(message);
+//Delete an existing board
+app.delete('/api/board/delete/:boardId', (req, res) => {
+    async function deleteBoard() {
+        try {
+            const _id = req.params.boardId;
+            const response = await Boards.findByIdAndDelete(_id);
+            res.send(response);
+        }
+        catch (error) {
+            res.send(error);
         }
     }
-    else {
-        let message = {
-            text: 'Invalid username, please re-login',
-        }
-        res.send(message);
-    }
+    deleteBoard();
 });
 
-app.put('/api/board/:boardId/edit', (req, res) => {
-    let user = findUser(req.body.username);
-    if (user && user.boards) {
-        let selectedBoard = findBoard(user, req.params.boardId);
-        if (selectedBoard && selectedBoard.board) {
-            let oldCard = getByID(selectedBoard.board, req.body.cardId);
-            let newCard = req.body.card;
-            if (!oldCard) {
-                let message = {
-                    text: 'There is no cards found',
-                }
-                res.send(message);
-            }
-            else if (oldCard && newCard) {
-                Object.assign(oldCard, newCard);
-                let message = {
-                    text: 'Card updated successfully',
-                }
-                res.send(message);
-            } else {
-                let message = {
-                    text: 'There is no cards found',
-                }
-                res.send(message);
-            }
-        } else {
-            let message = {
-                text: 'There is no boards found',
-            }
-            res.send(message);
+//Get list of cards based on Board Id
+app.get('/api/cards/:boradId', (req, res) => {
+    async function getCards() {
+        try {
+            const boradId = req.params.boradId;
+            const cards = await Cards.find({ boradId });
+            res.send(cards);
+        }
+        catch (error) {
+            res.status(500).send(error);
         }
     }
-    else {
-        let message = {
-            text: 'Invalid username, please re-login',
+    getCards();
+})
+
+//Create new cards
+app.post('/api/card/add', (req, res) => {
+    async function addCard() {
+        try {
+            const card = new Cards({
+                boradId: req.body.boradId,
+                title: req.body.title,
+                description: req.body.description,
+                author: req.body.author,
+                parentId: req.body.parentId,
+                tags: req.body.tags,
+                selectedDate: req.body.selectedDate,
+                createdAt: req.body.createdAt
+            });
+            const response = await card.save();
+            res.send(response);
         }
-        res.send(message);
+        catch (error) {
+            res.send(error);
+        }
     }
+    addCard();
 });
 
-app.delete('/api/board/:boardId/:username/delete/:parentId/:cardIndex', (req, res) => {
-    let user = findUser(req.params.username);
-    if (user && user.boards) {
-        let selectedBoard = findBoard(user, req.params.boardId);
-        if (selectedBoard && selectedBoard.board) {
-            let parentCard = getByID(selectedBoard.board, req.params.parentId);
-            let cardIndex = req.params.cardIndex;
-            if (!parentCard) {
-                let message = {
-                    text: 'No card found',
-                }
-                res.send(user.boards);
-            }
-            else if (parentCard && parentCard.talks && cardIndex) {
-                parentCard.talks.splice(cardIndex, 1)
-                let message = {
-                    text: 'Card deleted successfully',
-                }
-                res.send(user.boards);
-            } else {
-                let message = {
-                    text: 'No card found',
-                }
-                res.send(user.boards);
-            }
-        } else {
-            let message = {
-                text: 'No board found',
-            }
-            res.send(user.boards);
+//Edit an existing card
+app.put('/api/card/edit', (req, res) => {
+    async function editCard() {
+        try {
+            const _id = req.body._id;
+            const updatedCard = {
+                boradId: req.body.boradId,
+                parentId: req.body.parentId,
+                title: req.body.title,
+                description: req.body.description,
+                author: req.body.author,
+                tags: req.body.tags,
+                selectedDate: req.body.selectedDate,
+                createdAt: req.body.createdAt,
+            };
+            const response = await Cards.findByIdAndUpdate(_id, updatedCard);
+            res.send(response);
+        }
+        catch (error) {
+            res.send(error);
         }
     }
-    else {
-        let message = {
-            text: 'Invalid username, please re-login',
-        }
-        res.send(message);
-    }
+    editCard();
 });
 
-function findUser(username) {
-    return Users.find(user => user.name == username);
-}
-
-function findBoard(user, boardId) {
-    return user.boards.find(board => board.id == boardId);
-}
-
-function getByID(board, id) {
-    let result = null
-    if (id === board.id) {
-        return board
-    } else {
-        if (board.talks) {
-            board.talks.some(card => result = getByID(card, id));
+//Delete an existing card
+app.delete('/api/card/delete/:cardId', (req, res) => {
+    async function deleteBoard() {
+        try {
+            const _id = req.params.cardId;
+            const response = await Cards.findByIdAndDelete(_id);
+            res.send(response);
         }
-        return result;
+        catch (error) {
+            res.send(error);
+        }
     }
-}
+    deleteBoard();
+});
 
 function validateLogin(data) {
     const schema = Joi.object({
