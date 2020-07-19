@@ -18,7 +18,10 @@ app.use(express.static('public'));
 app.use(morgan('tiny'));
 app.use('/api/status', utility);
 
-mongoose.connect('mongodb://localhost/okr-node', { useNewUrlParser: true })
+const URI = "mongodb+srv://fpslabs:fpslabs@123@cluster0.apkym.mongodb.net/okr-node?retryWrites=true&w=majority";
+const LocalURI = "mongodb://localhost/okr-node";
+
+mongoose.connect(URI, { useNewUrlParser: true })
     .then(() => console.log('Connected to MongoDB...'))
     .catch(() => console.log('Unable to connect MongoDB...'))
 
