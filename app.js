@@ -92,6 +92,20 @@ app.post('/api/login', (req, res) => {
     }
 });
 
+//Get list of registered users
+app.get('/api/users', (req, res) => {
+    async function getUsers() {
+        try {
+            const users = await Users.find({}, 'username');
+            res.send(users);
+        }
+        catch (error) {
+            res.status(500).send(error);
+        }
+    }
+    getUsers();
+});
+
 //Get list of boards based on User ID
 app.get('/api/boards/:userId', (req, res) => {
     async function getBoards() {
