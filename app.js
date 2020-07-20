@@ -38,6 +38,8 @@ const boardSchema = new mongoose.Schema({
     title: String,
     description: String,
     author: String,
+    image: String,
+    status: String,
     tags: [String],
     selectedDate: {
         start: Date,
@@ -56,6 +58,8 @@ const cardSchema = new mongoose.Schema({
     parentId: String,
     description: String,
     author: String,
+    image: String,
+    status: String,
     tags: [String],
     selectedDate: {
         start: Date,
@@ -154,9 +158,11 @@ app.put('/api/board/edit', (req, res) => {
                 title: req.body.title,
                 description: req.body.description,
                 author: req.body.author,
+                status: req.body.status,
+                image: req.body.image,
                 tags: req.body.tags,
                 selectedDate: req.body.selectedDate,
-                createdAt: req.body.createdAt,
+                createdAt: new Date(),
             };
             const response = await Boards.findByIdAndUpdate(_id, updatedBoard);
             res.send(response);
@@ -209,8 +215,10 @@ app.post('/api/card/add', (req, res) => {
                 author: req.body.author,
                 parentId: req.body.parentId,
                 tags: req.body.tags,
+                status: req.body.status,
+                image: req.body.image,
                 selectedDate: req.body.selectedDate,
-                createdAt: req.body.createdAt
+                createdAt: new Date()
             });
             const response = await card.save();
             res.send(response);
@@ -234,8 +242,10 @@ app.put('/api/card/edit', (req, res) => {
                 description: req.body.description,
                 author: req.body.author,
                 tags: req.body.tags,
+                status: req.body.status,
+                image: req.body.image,
                 selectedDate: req.body.selectedDate,
-                createdAt: req.body.createdAt,
+                createdAt: new Date(),
             };
             const response = await Cards.findByIdAndUpdate(_id, updatedCard);
             res.send(response);
