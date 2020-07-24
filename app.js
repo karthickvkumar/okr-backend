@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const app = express();
 
 const utility = require("./routes/utility");
+const { static } = require('express');
+const { string } = require('@hapi/joi');
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -55,6 +57,7 @@ const cardSchema = new mongoose.Schema({
         ref: 'Boards'
     },
     title: String,
+    rootId: String,
     parentId: String,
     description: String,
     author: String,
@@ -213,6 +216,7 @@ app.post('/api/card/add', (req, res) => {
                 title: req.body.title,
                 description: req.body.description,
                 author: req.body.author,
+                rootId: req.body.rootId,
                 parentId: req.body.parentId,
                 tags: req.body.tags,
                 status: req.body.status,
