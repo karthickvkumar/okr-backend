@@ -57,7 +57,7 @@ const cardSchema = new mongoose.Schema({
         ref: 'Boards'
     },
     title: String,
-    rootId: String,
+    level: Number,
     parentId: String,
     description: String,
     author: String,
@@ -216,7 +216,7 @@ app.post('/api/card/add', (req, res) => {
                 title: req.body.title,
                 description: req.body.description,
                 author: req.body.author,
-                rootId: req.body.rootId,
+                level: req.body.level,
                 parentId: req.body.parentId,
                 tags: req.body.tags,
                 status: req.body.status,
