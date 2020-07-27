@@ -78,11 +78,11 @@ const Cards = mongoose.model('Cards', cardSchema);
 // Update login information
 app.post('/api/login', (req, res) => {
     try {
-        let { error } = validateLogin(req.body);
-        if (error) {
-            res.status(400).send(error.details[0].message);
-            return;
-        }
+        // let { error } = validateLogin(req.body);
+        // if (error) {
+        //     res.status(400).send(error.details[0].message);
+        //     return;
+        // }
         async function createUser() {
             const email = req.body.email;
             const isUser = await Users.findOne({ email });
@@ -107,11 +107,11 @@ app.post('/api/login', (req, res) => {
 //Register a account
 app.post('/api/signup', (req, res) => {
     try {
-        let { error } = validateLogin(req.body);
-        if (error) {
-            res.status(400).send(error.details[0].message);
-            return;
-        }
+        // let { error } = validateLogin(req.body);
+        // if (error) {
+        //     res.status(400).send(error.details[0].message);
+        //     return;
+        // }
         async function createUser() {
             const isUser = await Users.findOne({ email: req.body.email });
             if (!isUser) {
