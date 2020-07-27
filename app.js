@@ -6,7 +6,7 @@ const app = express();
 
 const utility = require("./routes/utility");
 const { static } = require('express');
-const { string } = require('@hapi/joi');
+const { string, any } = require('@hapi/joi');
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,7 +28,10 @@ mongoose.connect(URI, { useNewUrlParser: true })
     .catch(() => console.log('Unable to connect MongoDB...'))
 
 const userSchema = new mongoose.Schema({
-    username: String
+    username: String,
+    email: String,
+    password: String,
+    image: String
 });
 const Users = mongoose.model('Users', userSchema);
 
@@ -80,11 +83,13 @@ app.post('/api/login', (req, res) => {
             res.status(400).send(error.details[0].message);
             return;
         }
-        async function createUser(username) {
-            const isUser = await Users.findOne({ username });
+        async function createUser() {
+            const email = req.body.email;
+            const isUser = await Users.findOne({ email });
             if (!isUser) {
                 const users = new Users({
-                    username
+                    email: email,
+                    password: req.body.password,
                 });
                 const response = await users.save();
                 res.send(response);
@@ -92,7 +97,37 @@ app.post('/api/login', (req, res) => {
             }
             res.send(isUser)
         }
-        createUser(req.body.username);
+        createUser();
+    }
+    catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+//Register a account
+app.post('/api/signup', (req, res) => {
+    try {
+        let { error } = validateLogin(req.body);
+        if (error) {
+            res.status(400).send(error.details[0].message);
+            return;
+        }
+        async function createUser() {
+            const isUser = await Users.findOne({ email: req.body.email });
+            if (!isUser) {
+                const users = new Users({
+                    username: req.body.username,
+                    email: req.body.email,
+                    password: req.body.password,
+                    image: req.body.image
+                });
+                const response = await users.save();
+                res.send(response);
+                return;
+            }
+            res.send(isUser)
+        }
+        createUser();
     }
     catch (error) {
         res.status(500).send(error);
@@ -278,7 +313,7 @@ app.delete('/api/card/delete/:cardId', (req, res) => {
 
 function validateLogin(data) {
     const schema = Joi.object({
-        username: Joi.string()
+        email: Joi.string()
             .min(3)
             .required()
     });
