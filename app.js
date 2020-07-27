@@ -87,12 +87,8 @@ app.post('/api/login', (req, res) => {
             const email = req.body.email;
             const isUser = await Users.findOne({ email });
             if (!isUser) {
-                const users = new Users({
-                    email: email,
-                    password: req.body.password,
-                });
-                const response = await users.save();
-                res.send(response);
+                const response = "Invalid email or password";
+                res.status(400).send(response);
                 return;
             }
             res.send(isUser)
