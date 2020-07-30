@@ -301,6 +301,7 @@ app.put('/api/card/reorder', (req, res) => {
                 const map = {};
                 cards.forEach((card) => {
                     map[card._id] = card;
+                    map[card.parentId] = parentId;
                 });
                 Promise.all(
                     orders.map((card) => {
