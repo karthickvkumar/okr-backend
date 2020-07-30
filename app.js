@@ -223,7 +223,7 @@ app.get('/api/cards/:boradId', (req, res) => {
     async function getCards() {
         try {
             const boradId = req.params.boradId;
-            const cards = await Cards.find({ boradId });
+            const cards = await Cards.find({ boradId }).sort({ order: 1 });
             res.send(cards);
         }
         catch (error) {
