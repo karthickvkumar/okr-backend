@@ -46,10 +46,7 @@ const boardSchema = new mongoose.Schema({
     image: String,
     status: String,
     tags: [String],
-    selectedDate: {
-        start: Date,
-        end: Date
-    },
+    selectedDate: [Date],
     createdAt: Date
 });
 const Boards = mongoose.model('Boards', boardSchema);
@@ -68,10 +65,7 @@ const cardSchema = new mongoose.Schema({
     image: String,
     status: String,
     tags: [String],
-    selectedDate: {
-        start: Date,
-        end: Date
-    },
+    selectedDate: [Date],
     createdAt: Date
 });
 const Cards = mongoose.model('Cards', cardSchema);
