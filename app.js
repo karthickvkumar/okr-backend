@@ -290,6 +290,43 @@ app.put('/api/card/edit', (req, res) => {
     editCard();
 });
 
+//Re-order cards
+app.put('/api/card/reorder', (req, res) => {
+    async function editCard() {
+        try {
+            const parentId = req.body.parentId;
+            const orders = req.body.orders;
+            const cards = await Cards.find({ parentId });
+            if (cards instanceof Array) {
+                const map = {};
+                cards.forEach((card) => {
+                    map[card._id] = card;
+                });
+                Promise.all(
+                    orders.map((card) => {
+                        map[card._id].order = card.order;
+                        return Cards.findByIdAndUpdate(card._id, map[card._id]).then((update) => {
+                            return update;
+                        })
+                    }))
+                    .then((updatedCards) => {
+                        res.send(updatedCards);
+                    })
+                    .catch((error) => {
+                        res.send(error);
+                    })
+            }
+            else {
+                res.send([]);
+            }
+        }
+        catch (error) {
+            res.send(error);
+        }
+    }
+    editCard();
+});
+
 //Delete an existing card
 app.delete('/api/card/delete/:cardId', (req, res) => {
     async function deleteBoard() {
