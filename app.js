@@ -294,32 +294,21 @@ app.put('/api/card/edit', (req, res) => {
 app.put('/api/card/reorder', (req, res) => {
     async function editCard() {
         try {
-            const parentId = req.body.parentId;
-            const orders = req.body.orders;
-            const cards = await Cards.find({ parentId });
-            if (cards instanceof Array) {
-                const map = {};
-                cards.forEach((card) => {
-                    map[card._id] = card;
-                });
-                Promise.all(
-                    orders.map((card) => {
-                        map[card._id].order = card.order;
-                        map[card._id].parentId = parentId;
-                        return Cards.findByIdAndUpdate(card._id, map[card._id]).then((update) => {
-                            return update;
-                        })
-                    }))
-                    .then((updatedCards) => {
-                        res.send(updatedCards);
+            const cards = req.body.cards;
+            Promise.all(
+                cards.map((card) => {
+                    return Cards.findByIdAndUpdate(card._id, card).then((update) => {
+                        return update;
                     })
-                    .catch((error) => {
-                        res.send(error);
-                    })
-            }
-            else {
-                res.send([]);
-            }
+                })
+            )
+                .then((updatedCards) => {
+                    res.send('Successfully positions are updated');
+                })
+                .catch((error) => {
+                    res.send(error);
+                })
+
         }
         catch (error) {
             res.send(error);
