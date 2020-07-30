@@ -61,6 +61,7 @@ const cardSchema = new mongoose.Schema({
     },
     title: String,
     level: Number,
+    order: Number,
     parentId: String,
     description: String,
     author: String,
