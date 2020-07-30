@@ -301,11 +301,11 @@ app.put('/api/card/reorder', (req, res) => {
                 const map = {};
                 cards.forEach((card) => {
                     map[card._id] = card;
-                    map[card.parentId] = parentId;
                 });
                 Promise.all(
                     orders.map((card) => {
                         map[card._id].order = card.order;
+                        map[card._id].parentId = parentId;
                         return Cards.findByIdAndUpdate(card._id, map[card._id]).then((update) => {
                             return update;
                         })
